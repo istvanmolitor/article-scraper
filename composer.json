@@ -1,0 +1,23 @@
+{
+    "name": "istvanmolitor/article-scraper",
+    "description": "Article scraper package for Laravel",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "IstvanMolitor\\ArticleScraper\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^12.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "IstvanMolitor\\ArticleScraper\\ArticleScraperServiceProvider"
+            ]
+        }
+    }
+}
+
