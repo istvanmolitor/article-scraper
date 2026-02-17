@@ -21,7 +21,7 @@ class ArticleScraperController extends Controller
             'url' => 'required|url'
         ]);
 
-        try {
+
             $article = $this->scraperService->getByUrl($validated['url']);
 
             if (!$article) {
@@ -35,7 +35,8 @@ class ArticleScraperController extends Controller
                 'success' => true,
                 'data' => $article->toArray()
             ]);
-        } catch (\Exception $e) {
+        try {
+    } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to scrape article: ' . $e->getMessage()

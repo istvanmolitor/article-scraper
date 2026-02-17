@@ -4,16 +4,20 @@ namespace IstvanMolitor\ArticleScraper\Services;
 
 use Illuminate\Support\Str;
 use Molitor\ArticleParser\Article\Article;
+use Molitor\ArticleParser\Article\ArticleContent;
+use Molitor\ArticleParser\Article\ArticleContentElement;
 use Molitor\Cms\Models\Author;
 use Molitor\Cms\Models\Content;
-use Molitor\Cms\Models\ContentElement;
-use Molitor\Cms\Models\ContentElementType;
 use Molitor\Cms\Models\Page;
+use Molitor\Cms\Services\ContentHandler;
 use Molitor\Language\Models\Language;
 
 class ArticleToPageService
 {
-    private array $contentElementTypeCache = [];
+    public function __construct(
+        private ContentHandler $contentHandler
+    ) {
+    }
 
     /**
      * Convert an Article object to a CMS Page
@@ -69,7 +73,7 @@ class ArticleToPageService
         $this->attachAuthors($page, $article->getAuthors());
 
         // Process Content Elements
-        $this->processContentElements($content, $article->toArray()['content']);
+        $this->processContentElements($content, $article->getContent());
 
         return $page->fresh(['content.contentElements', 'authors']);
     }
@@ -127,127 +131,99 @@ class ArticleToPageService
      * Process and create content elements from article content
      *
      * @param Content $content
-     * @param array $contentElements
+     * @param ArticleContent $articleContent
      * @return void
      */
-    private function processContentElements(Content $content, array $contentElements): void
+    private function processContentElements(Content $content, ArticleContent $articleContent): void
     {
-        $sort = 0;
+        $elements = [];
 
-        foreach ($contentElements as $element) {
-            $type = $element['type'] ?? null;
+        /** @var ArticleContentElement $element */
+        foreach ($articleContent as $element) {
+            $elementData = $element->toArray();
+            $type = $elementData['type'] ?? null;
 
             if (!$type) {
                 continue;
             }
 
-            $contentElementTypeId = $this->getContentElementTypeId($type);
+            $settings = $this->convertToContentHandlerSettings($type, $elementData);
 
-            if (!$contentElementTypeId) {
-                continue;
+            if ($settings !== null) {
+                $elements[] = [
+                    'type' => $this->mapArticleTypeToCmsType($type),
+                    'settings' => $settings,
+                ];
             }
-
-            $settings = $this->prepareSettings($type, $element);
-
-            ContentElement::create([
-                'content_id' => $content->id,
-                'content_element_type_id' => $contentElementTypeId,
-                'settings' => serialize($settings),
-                'sort' => $sort,
-                'is_visible' => true,
-            ]);
-
-            $sort++;
         }
+
+        $this->contentHandler->sevaContentElements($content, $elements);
     }
 
     /**
-     * Get content element type ID by name
+     * Map article parser type to CMS content element type
      *
-     * @param string $typeName
-     * @return int|null
+     * @param string $articleType
+     * @return string
      */
-    private function getContentElementTypeId(string $typeName): ?int
+    private function mapArticleTypeToCmsType(string $articleType): string
     {
-        // Map article parser types to CMS types
-        $typeMap = [
+        return match ($articleType) {
             'paragraph' => 'text',
             'heading' => 'heading',
             'image' => 'image',
             'quote' => 'quote',
             'list' => 'list',
             'video' => 'video',
-            'iframe' => 'code', // iframes stored as code elements
-        ];
-
-        $cmsTypeName = $typeMap[$typeName] ?? null;
-
-        if (!$cmsTypeName) {
-            return null;
-        }
-
-        // Check cache
-        if (isset($this->contentElementTypeCache[$cmsTypeName])) {
-            return $this->contentElementTypeCache[$cmsTypeName];
-        }
-
-        // Get from database
-        $type = ContentElementType::where('name', $cmsTypeName)->first();
-
-        if ($type) {
-            $this->contentElementTypeCache[$cmsTypeName] = $type->id;
-            return $type->id;
-        }
-
-        return null;
+            'iframe' => 'code',
+            default => 'text',
+        };
     }
 
     /**
-     * Prepare settings array for content element
+     * Convert article element data to ContentHandler settings format
      *
      * @param string $type
-     * @param array $element
-     * @return array
+     * @param array $elementData
+     * @return array|null
      */
-    private function prepareSettings(string $type, array $element): array
+    private function convertToContentHandlerSettings(string $type, array $elementData): ?array
     {
         return match ($type) {
             'paragraph' => [
-                'text' => $element['content'] ?? '',
+                'text' => $elementData['content'] ?? '',
                 'align' => 'left',
             ],
             'heading' => [
-                'text' => $element['content'] ?? '',
+                'text' => $elementData['content'] ?? '',
                 'level' => 2,
             ],
             'image' => [
-                'src' => $element['src'] ?? '',
-                'alt' => $element['alt'] ?? '',
+                'src' => $elementData['src'] ?? '',
+                'alt' => $elementData['alt'] ?? '',
                 'width' => null,
                 'height' => null,
             ],
             'quote' => [
-                'text' => $element['content'] ?? '',
-                'author' => $element['author'] ?? null,
+                'text' => $elementData['content'] ?? '',
+                'author' => null,
             ],
             'list' => [
-                'items' => $element['items'] ?? [],
+                'items' => $elementData['items'] ?? [],
                 'ordered' => false,
             ],
             'video' => [
-                'src' => $element['src'] ?? '',
+                'src' => $elementData['src'] ?? '',
                 'provider' => 'custom',
             ],
             'iframe' => [
-                'code' => '<iframe src="' . ($element['src'] ?? '') . '" width="100%" height="400" style="border:0;" allowfullscreen></iframe>',
+                'code' => '<iframe src="' . ($elementData['src'] ?? '') . '" width="100%" height="400" style="border:0;" allowfullscreen></iframe>',
                 'language' => 'html',
             ],
-            default => [],
+            default => null,
         };
     }
 }
-
-
 
 
 

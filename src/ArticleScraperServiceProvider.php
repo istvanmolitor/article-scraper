@@ -20,7 +20,7 @@ class ArticleScraperServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(ArticleToPageService::class, function ($app) {
-            return new ArticleToPageService();
+            return $app->make(ArticleToPageService::class);
         });
     }
 }
