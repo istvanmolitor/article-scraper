@@ -16,16 +16,10 @@ class ArticleToPageService
 {
     public function __construct(
         private ContentHandler $contentHandler
-    ) {
-    }
+    ) {}
 
     /**
      * Convert an Article object to a CMS Page
-     *
-     * @param Article $article
-     * @param int|null $languageId
-     * @param bool $publish
-     * @return Page
      */
     public function convertArticleToPage(Article $article, ?int $languageId = null, bool $publish = false): Page
     {
@@ -45,11 +39,11 @@ class ArticleToPageService
 
         // Truncate fields to match database constraints (VARCHAR 255)
         if (strlen($title) > 255) {
-            $title = substr($title, 0, 252) . '...';
+            $title = substr($title, 0, 252).'...';
         }
 
         if (strlen($lead) > 255) {
-            $lead = substr($lead, 0, 252) . '...';
+            $lead = substr($lead, 0, 252).'...';
         }
 
         if ($mainImageUrl && strlen($mainImageUrl) > 255) {
@@ -80,9 +74,6 @@ class ArticleToPageService
 
     /**
      * Generate a unique slug from title
-     *
-     * @param string $title
-     * @return string
      */
     private function generateUniqueSlug(string $title): string
     {
@@ -91,7 +82,7 @@ class ArticleToPageService
         $counter = 1;
 
         while (Page::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $counter;
+            $slug = $baseSlug.'-'.$counter;
             $counter++;
         }
 
@@ -100,10 +91,6 @@ class ArticleToPageService
 
     /**
      * Attach authors to page
-     *
-     * @param Page $page
-     * @param array $authorNames
-     * @return void
      */
     private function attachAuthors(Page $page, array $authorNames): void
     {
@@ -122,17 +109,13 @@ class ArticleToPageService
             $authorIds[] = $author->id;
         }
 
-        if (!empty($authorIds)) {
+        if (! empty($authorIds)) {
             $page->authors()->sync($authorIds);
         }
     }
 
     /**
      * Process and create content elements from article content
-     *
-     * @param Content $content
-     * @param ArticleContent $articleContent
-     * @return void
      */
     private function processContentElements(Content $content, ArticleContent $articleContent): void
     {
@@ -143,7 +126,7 @@ class ArticleToPageService
             $elementData = $element->toArray();
             $type = $elementData['type'] ?? null;
 
-            if (!$type) {
+            if (! $type) {
                 continue;
             }
 
@@ -162,9 +145,6 @@ class ArticleToPageService
 
     /**
      * Map article parser type to CMS content element type
-     *
-     * @param string $articleType
-     * @return string
      */
     private function mapArticleTypeToCmsType(string $articleType): string
     {
@@ -182,10 +162,6 @@ class ArticleToPageService
 
     /**
      * Convert article element data to ContentHandler settings format
-     *
-     * @param string $type
-     * @param array $elementData
-     * @return array|null
      */
     private function convertToContentHandlerSettings(string $type, array $elementData): ?array
     {
@@ -217,13 +193,10 @@ class ArticleToPageService
                 'provider' => 'custom',
             ],
             'iframe' => [
-                'code' => '<iframe src="' . ($elementData['src'] ?? '') . '" width="100%" height="400" style="border:0;" allowfullscreen></iframe>',
+                'code' => '<iframe src="'.($elementData['src'] ?? '').'" width="100%" height="400" style="border:0;" allowfullscreen></iframe>',
                 'language' => 'html',
             ],
             default => null,
         };
     }
 }
-
-
-

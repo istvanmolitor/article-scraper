@@ -18,27 +18,27 @@ class ArticleScraperController extends Controller
     public function scrape(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'url' => 'required|url'
+            'url' => 'required|url',
         ]);
 
         try {
             $article = $this->scraperService->getByUrl($validated['url']);
 
-            if (!$article) {
+            if (! $article) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unable to parse article from the provided URL'
+                    'message' => 'Unable to parse article from the provided URL',
                 ], 400);
             }
 
             return response()->json([
                 'success' => true,
-                'data' => $article->toArray()
+                'data' => $article->toArray(),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to scrape article: ' . $e->getMessage()
+                'message' => 'Failed to scrape article: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -55,10 +55,10 @@ class ArticleScraperController extends Controller
             // Parse article
             $article = $this->scraperService->getByUrl($validated['url']);
 
-            if (!$article) {
+            if (! $article) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unable to parse article from the provided URL'
+                    'message' => 'Unable to parse article from the provided URL',
                 ], 400);
             }
 
@@ -77,15 +77,14 @@ class ArticleScraperController extends Controller
                     'title' => $page->title,
                     'slug' => $page->slug,
                     'is_published' => $page->is_published,
-                    'url' => url('/pages/' . $page->slug),
-                ]
+                    'url' => url('/pages/'.$page->slug),
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to scrape and save article: ' . $e->getMessage()
+                'message' => 'Failed to scrape and save article: '.$e->getMessage(),
             ], 500);
         }
     }
 }
-

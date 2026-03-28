@@ -16,7 +16,7 @@ class ArticleScraperServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ArticleParserService::class, function ($app) {
-            return new ArticleParserService();
+            return new ArticleParserService;
         });
 
         $this->app->singleton(ArticleToPageService::class, function ($app) {
@@ -24,4 +24,3 @@ class ArticleScraperServiceProvider extends ServiceProvider
         });
     }
 }
-
