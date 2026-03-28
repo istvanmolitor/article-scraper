@@ -232,10 +232,10 @@ trait Converter
      *
      * @example
      * ```
-     * echo Carbon::now()->toIso8601String();
+     * echo Carbon::now()->toDateTimeString();
      * ```
      */
-    public function toIso8601String(): string
+    public function toDateTimeString(): string
     {
         return $this->toAtomString();
     }

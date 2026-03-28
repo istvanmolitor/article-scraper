@@ -907,7 +907,7 @@ class CarbonPeriod extends DatePeriodBase implements Countable, JsonSerializable
     /**
      * Reset the date interval to the default value.
      *
-     * Difference with simply setting interval to 1-day is that P1D will not appear when calling toIso8601String()
+     * Difference with simply setting interval to 1-day is that P1D will not appear when calling toDateTimeString()
      * and also next adding to the interval won't include the default 1-day.
      */
     public function resetDateInterval(): static
@@ -1421,7 +1421,7 @@ class CarbonPeriod extends DatePeriodBase implements Countable, JsonSerializable
     /**
      * Format the date period as ISO 8601.
      */
-    public function toIso8601String(): string
+    public function toDateTimeString(): string
     {
         $parts = [];
 
@@ -1429,14 +1429,14 @@ class CarbonPeriod extends DatePeriodBase implements Countable, JsonSerializable
             $parts[] = 'R'.$this->carbonRecurrences;
         }
 
-        $parts[] = $this->startDate->toIso8601String();
+        $parts[] = $this->startDate->toDateTimeString();
 
         if (!$this->isDefaultInterval) {
             $parts[] = $this->dateInterval->spec();
         }
 
         if ($this->endDate !== null) {
-            $parts[] = $this->endDate->toIso8601String();
+            $parts[] = $this->endDate->toDateTimeString();
         }
 
         return implode('/', $parts);
@@ -1489,7 +1489,7 @@ class CarbonPeriod extends DatePeriodBase implements Countable, JsonSerializable
      */
     public function spec(): string
     {
-        return $this->toIso8601String();
+        return $this->toDateTimeString();
     }
 
     /**
