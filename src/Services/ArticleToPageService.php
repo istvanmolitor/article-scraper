@@ -140,7 +140,7 @@ class ArticleToPageService
             }
         }
 
-        $this->contentHandler->sevaContentElements($content, $elements);
+        $this->contentHandler->saveContentElements($content, $elements);
     }
 
     /**
