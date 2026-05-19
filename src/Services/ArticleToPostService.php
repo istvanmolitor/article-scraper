@@ -8,36 +8,33 @@ use Molitor\ArticleParser\Article\ArticleContent;
 use Molitor\ArticleParser\Article\ArticleContentElement;
 use Molitor\Cms\Models\Author;
 use Molitor\Cms\Models\Content;
-use Molitor\Cms\Models\Page;
+use Molitor\Cms\Models\Post;
+use Molitor\Cms\Models\PostMeta;
 use Molitor\Cms\Services\ContentHandler;
 use Molitor\Language\Models\Language;
 
-class ArticleToPageService
+class ArticleToPostService
 {
     public function __construct(
         private ContentHandler $contentHandler
     ) {}
 
     /**
-     * Convert an Article object to a CMS Page
+     * Convert an Article object to a CMS Post
      */
-    public function convertArticleToPage(Article $article, ?int $languageId = null, bool $publish = false): Page
+    public function convertArticleToPost(Article $article, string $sourceLink, ?int $languageId = null, bool $publish = false): Post
     {
-        // Get or default language
         if ($languageId === null) {
             $language = Language::where('code', 'hu')->first();
             $languageId = $language?->id ?? 1;
         }
 
-        // Create Content
         $content = Content::create([]);
 
-        // Create Page
         $title = $article->getTitle();
         $lead = $article->getLead();
         $mainImageUrl = $article->getMainImage()?->getSrc();
 
-        // Truncate fields to match database constraints (VARCHAR 255)
         if (strlen($title) > 255) {
             $title = substr($title, 0, 252).'...';
         }
@@ -47,12 +44,10 @@ class ArticleToPageService
         }
 
         if ($mainImageUrl && strlen($mainImageUrl) > 255) {
-            // If image URL is too long, we'll skip it rather than truncate
-            // (truncated URL would be invalid anyway)
             $mainImageUrl = null;
         }
 
-        $page = Page::create([
+        $post = Post::create([
             'title' => $title,
             'slug' => $this->generateUniqueSlug($title),
             'lead' => $lead,
@@ -63,13 +58,23 @@ class ArticleToPageService
             'layout' => 'article',
         ]);
 
-        // Process Authors
-        $this->attachAuthors($page, $article->getAuthors());
+        PostMeta::create([
+            'post_id' => $post->id,
+            'name' => 'source_link',
+            'meta_data' => $sourceLink,
+        ]);
 
-        // Process Content Elements
+        PostMeta::create([
+            'post_id' => $post->id,
+            'name' => 'scraped_at',
+            'meta_data' => now()->toIso8601String(),
+        ]);
+
+        $this->attachAuthors($post, $article->getAuthors());
+
         $this->processContentElements($content, $article->getContent());
 
-        return $page->fresh(['content.contentElements', 'authors']);
+        return $post->fresh(['content.contentElements', 'authors']);
     }
 
     /**
@@ -81,7 +86,7 @@ class ArticleToPageService
         $slug = $baseSlug;
         $counter = 1;
 
-        while (Page::where('slug', $slug)->exists()) {
+        while (Post::where('slug', $slug)->exists()) {
             $slug = $baseSlug.'-'.$counter;
             $counter++;
         }
@@ -90,9 +95,9 @@ class ArticleToPageService
     }
 
     /**
-     * Attach authors to page
+     * Attach authors to post
      */
-    private function attachAuthors(Page $page, array $authorNames): void
+    private function attachAuthors(Post $post, array $authorNames): void
     {
         $authorIds = [];
 
@@ -110,7 +115,7 @@ class ArticleToPageService
         }
 
         if (! empty($authorIds)) {
-            $page->authors()->sync($authorIds);
+            $post->authors()->sync($authorIds);
         }
     }
 
@@ -200,3 +205,4 @@ class ArticleToPageService
         };
     }
 }
+
