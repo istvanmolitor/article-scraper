@@ -9,10 +9,12 @@ use Molitor\ArticleParser\Article\ArticleContentElement;
 use Molitor\Cms\Models\Author;
 use Molitor\Cms\Models\Content;
 use Molitor\Cms\Models\Post;
+use Molitor\Cms\Models\PostGroup;
 use Molitor\Cms\Models\PostMeta;
 use Molitor\Cms\Repositories\PostMetaRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
 use Molitor\Language\Models\Language;
+use Molitor\Theme\Services\LayoutService;
 
 class ArticleToPostService
 {
@@ -56,8 +58,10 @@ class ArticleToPostService
             'content_id' => $content->id,
             'language_id' => $languageId,
             'is_published' => $publish,
-            'layout' => 'article',
+            'layout' => $this->getLayout(),
         ]);
+
+        $this->assignPostGroupFromDomain($post, $sourceLink);
 
         $postMetaRepository = app(PostMetaRepositoryInterface::class);
         $postMetaRepository->save($post, 'source_link', $sourceLink);
@@ -97,6 +101,7 @@ class ArticleToPostService
         $post->title = $title;
         $post->lead = $lead;
         $post->main_image_url = $mainImageUrl;
+        $post->layout = $this->getLayout();
         $post->save();
 
         $this->upsertPostMeta($post->id, 'source_link', $sourceLink);
@@ -123,6 +128,29 @@ class ArticleToPostService
         }
 
         return $slug;
+    }
+
+    private function assignPostGroupFromDomain(Post $post, string $sourceLink): void
+    {
+        $host = parse_url($sourceLink, PHP_URL_HOST);
+        if (! $host) {
+            return;
+        }
+
+        $host = str_replace('www.', '', $host);
+        $slug = Str::slug($host);
+
+        $postGroup = PostGroup::firstOrCreate(
+            ['slug' => $slug],
+            ['name' => ucfirst($host), 'layout' => $this->getLayout()]
+        );
+
+        $post->postGroups()->syncWithoutDetaching([$postGroup->id]);
+    }
+
+    public function getLayout(): string
+    {
+        return app(LayoutService::class)->getDefault();
     }
 
     /**

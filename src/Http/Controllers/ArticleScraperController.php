@@ -53,7 +53,7 @@ class ArticleScraperController extends Controller
             article: $article,
             sourceLink: $url,
             languageId: $request->input('language_id') !== null ? (int) $request->input('language_id') : null,
-            publish: (bool) $request->boolean('publish', false)
+            publish: (bool) $request->boolean('publish', false),
         );
         return response()->json([
             'success' => true,
