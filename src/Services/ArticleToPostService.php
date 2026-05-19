@@ -10,6 +10,7 @@ use Molitor\Cms\Models\Author;
 use Molitor\Cms\Models\Content;
 use Molitor\Cms\Models\Post;
 use Molitor\Cms\Models\PostMeta;
+use Molitor\Cms\Repositories\PostMetaRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
 use Molitor\Language\Models\Language;
 
@@ -58,20 +59,50 @@ class ArticleToPostService
             'layout' => 'article',
         ]);
 
-        PostMeta::create([
-            'post_id' => $post->id,
-            'name' => 'source_link',
-            'meta_data' => $sourceLink,
-        ]);
-
-        PostMeta::create([
-            'post_id' => $post->id,
-            'name' => 'scraped_at',
-            'meta_data' => now()->toIso8601String(),
-        ]);
+        $postMetaRepository = app(PostMetaRepositoryInterface::class);
+        $postMetaRepository->save($post, 'source_link', $sourceLink);
+        $postMetaRepository->save($post, 'scraped_at', now()->toIso8601String());
 
         $this->attachAuthors($post, $article->getAuthors());
 
+        $this->processContentElements($content, $article->getContent());
+
+        return $post->fresh(['content.contentElements', 'authors']);
+    }
+
+    public function updatePostFromArticle(Post $post, Article $article, string $sourceLink): Post
+    {
+        $title = $article->getTitle();
+        $lead = $article->getLead();
+        $mainImageUrl = $article->getMainImage()?->getSrc();
+
+        if (strlen($title) > 255) {
+            $title = substr($title, 0, 252).'...';
+        }
+
+        if (strlen($lead) > 255) {
+            $lead = substr($lead, 0, 252).'...';
+        }
+
+        if ($mainImageUrl && strlen($mainImageUrl) > 255) {
+            $mainImageUrl = null;
+        }
+
+        $content = $post->content;
+        if ($content === null) {
+            $content = Content::create([]);
+            $post->content_id = $content->id;
+        }
+
+        $post->title = $title;
+        $post->lead = $lead;
+        $post->main_image_url = $mainImageUrl;
+        $post->save();
+
+        $this->upsertPostMeta($post->id, 'source_link', $sourceLink);
+        $this->upsertPostMeta($post->id, 'scraped_at', now()->toIso8601String());
+
+        $this->attachAuthors($post, $article->getAuthors());
         $this->processContentElements($content, $article->getContent());
 
         return $post->fresh(['content.contentElements', 'authors']);
@@ -203,6 +234,19 @@ class ArticleToPostService
             ],
             default => null,
         };
+    }
+
+    private function upsertPostMeta(int $postId, string $name, ?string $value): void
+    {
+        PostMeta::query()->updateOrCreate(
+            [
+                'post_id' => $postId,
+                'name' => $name,
+            ],
+            [
+                'meta_data' => $value,
+            ]
+        );
     }
 }
 
