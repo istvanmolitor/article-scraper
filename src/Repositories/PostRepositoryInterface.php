@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface PostRepositoryInterface
 {
-	public function getPendingScrapePosts(int $count): Collection;
+    public function getPendingScrapePosts(int $count): Collection;
 }

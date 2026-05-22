@@ -1,4 +1,5 @@
 <?php
+
 namespace IstvanMolitor\ArticleScraper;
 
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +22,7 @@ class ArticleScraperServiceProvider extends ServiceProvider
             ]);
         }
     }
+
     public function register(): void
     {
         $this->app->bind(PostRepositoryInterface::class, PostRepository::class);

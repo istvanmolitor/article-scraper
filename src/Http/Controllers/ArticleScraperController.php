@@ -1,17 +1,21 @@
 <?php
+
 namespace IstvanMolitor\ArticleScraper\Http\Controllers;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use IstvanMolitor\ArticleScraper\Http\Requests\ScrapeAndSaveArticleRequest;
 use IstvanMolitor\ArticleScraper\Http\Requests\ScrapeArticleRequest;
 use IstvanMolitor\ArticleScraper\Services\ArticleToPostService;
 use Molitor\ArticleParser\Services\ArticleParserService;
+
 class ArticleScraperController extends Controller
 {
     public function __construct(
         private ArticleParserService $articleParserService,
         private ArticleToPostService $articleToPostService
     ) {}
+
     public function scrape(ScrapeArticleRequest $request): JsonResponse
     {
         $url = (string) $request->string('url');
@@ -28,11 +32,13 @@ class ArticleScraperController extends Controller
                 'message' => 'A cikk tartalma nem olvashato be a megadott URL-rol.',
             ], 422);
         }
+
         return response()->json([
             'success' => true,
             'article' => $article->toArray(),
         ]);
     }
+
     public function scrapeAndSave(ScrapeAndSaveArticleRequest $request): JsonResponse
     {
         $url = (string) $request->string('url');
@@ -55,6 +61,7 @@ class ArticleScraperController extends Controller
             languageId: $request->input('language_id') !== null ? (int) $request->input('language_id') : null,
             publish: (bool) $request->boolean('publish', false),
         );
+
         return response()->json([
             'success' => true,
             'message' => 'A cikk sikeresen elmentve postkent.',

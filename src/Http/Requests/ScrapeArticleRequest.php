@@ -33,4 +33,3 @@ class ScrapeArticleRequest extends FormRequest
         ];
     }
 }
-

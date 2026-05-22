@@ -81,5 +81,3 @@ class ScrapePostsCommand extends Command
         return self::SUCCESS;
     }
 }
-
-
