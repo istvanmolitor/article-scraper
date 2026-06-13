@@ -18,7 +18,7 @@ class ArticleScraperSeeder extends Seeder
         try {
             /** @var AclManagementService $aclService */
             $aclService = app(AclManagementService::class);
-            $aclService->createPermission('article_scraper', 'Cikk scraper kezelése', 'admin');
+            $aclService->createPermission('article-scraper', 'Cikk scraper kezelése', 'admin');
         } catch (PermissionException $e) {
             $this->command->error($e->getMessage());
         }
