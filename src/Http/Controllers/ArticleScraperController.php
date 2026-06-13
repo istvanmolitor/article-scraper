@@ -8,12 +8,14 @@ use IstvanMolitor\ArticleScraper\Http\Requests\ScrapeAndSaveArticleRequest;
 use IstvanMolitor\ArticleScraper\Http\Requests\ScrapeArticleRequest;
 use IstvanMolitor\ArticleScraper\Services\ArticleToPostService;
 use Molitor\ArticleParser\Services\ArticleParserService;
+use Molitor\Language\Repositories\LanguageRepositoryInterface;
 
 class ArticleScraperController extends Controller
 {
     public function __construct(
         private ArticleParserService $articleParserService,
-        private ArticleToPostService $articleToPostService
+        private ArticleToPostService $articleToPostService,
+        private LanguageRepositoryInterface $languageRepository
     ) {}
 
     public function scrape(ScrapeArticleRequest $request): JsonResponse
@@ -58,7 +60,7 @@ class ArticleScraperController extends Controller
         $post = $this->articleToPostService->convertArticleToPost(
             article: $article,
             sourceLink: $url,
-            languageId: $request->input('language_id') !== null ? (int) $request->input('language_id') : null,
+            languageId: $this->languageRepository->getIdByCode($article->getLanguage() ?? 'hu'),
             publish: (bool) $request->boolean('publish', false),
         );
 
