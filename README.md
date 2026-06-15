@@ -62,3 +62,21 @@ import { ArticleScraper } from '@/packages/vue-article-scraper'
 
 A `ArticleScraperService` osztály tartalmazza a szkraper logikát. Jelenleg csak a title tag-et dolgozza fel, de bővíthető további elemekkel (leírás, szerző, dátum, stb.).
 
+
+## Seeder regisztrálása
+
+A jogosultságok kezdeti beállításához regisztráld a seedert a `database/seeders/DatabaseSeeder.php` fájlban:
+
+```php
+use IstvanMolitor\ArticleScraper\database\seeders\ArticleScraperSeeder;
+
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call([
+            ArticleScraperSeeder::class,
+        ]);
+    }
+}
+```
