@@ -20,6 +20,7 @@ class ScrapeAndSaveArticleRequest extends FormRequest
             'url' => ['required', 'url', 'max:2048'],
             'language_id' => ['nullable', 'integer', 'exists:languages,id'],
             'publish' => ['nullable', 'boolean'],
+            'layout' => ['nullable', 'string', 'max:64'],
         ];
     }
 
@@ -35,6 +36,7 @@ class ScrapeAndSaveArticleRequest extends FormRequest
             'language_id.integer' => 'A nyelv azonositojanak egesz szamnak kell lennie.',
             'language_id.exists' => 'A megadott nyelv nem letezik.',
             'publish.boolean' => 'A publikalas mezo csak igaz vagy hamis ertek lehet.',
+            'layout.string' => 'A layout mezo karakterlancnak kell lennie.',
         ];
     }
 }

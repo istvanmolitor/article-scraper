@@ -9,13 +9,15 @@ use IstvanMolitor\ArticleScraper\Http\Requests\ScrapeArticleRequest;
 use IstvanMolitor\ArticleScraper\Services\ArticleToPostService;
 use Molitor\ArticleParser\Services\ArticleParserService;
 use Molitor\Language\Repositories\LanguageRepositoryInterface;
+use Molitor\Theme\Services\LayoutService;
 
 class ArticleScraperController extends Controller
 {
     public function __construct(
         private ArticleParserService $articleParserService,
         private ArticleToPostService $articleToPostService,
-        private LanguageRepositoryInterface $languageRepository
+        private LanguageRepositoryInterface $languageRepository,
+        private LayoutService $layoutService
     ) {}
 
     public function scrape(ScrapeArticleRequest $request): JsonResponse
@@ -57,11 +59,17 @@ class ArticleScraperController extends Controller
                 'message' => 'A cikk tartalma nem olvashato be a megadott URL-rol.',
             ], 422);
         }
+        $layout = $request->string('layout')->value() ?: null;
+        if ($layout && ! $this->layoutService->isValidLayout($layout)) {
+            $layout = null;
+        }
+
         $post = $this->articleToPostService->convertArticleToPost(
             article: $article,
             sourceLink: $url,
             languageId: $this->languageRepository->getIdByCode($article->getLanguage() ?? 'hu'),
             publish: (bool) $request->boolean('publish', false),
+            layout: $layout,
         );
 
         return response()->json([
