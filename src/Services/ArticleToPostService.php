@@ -50,11 +50,14 @@ class ArticleToPostService
             $mainImageUrl = null;
         }
 
+        $keywords = $article->getKeywords();
+
         $post = Post::create([
             'title' => $title,
             'slug' => $this->generateUniqueSlug($title),
             'lead' => $lead,
             'main_image_url' => $mainImageUrl,
+            'keywords' => ! empty($keywords) ? implode(', ', $keywords) : null,
             'content_id' => $content->id,
             'language_id' => $languageId,
             'is_published' => $publish,
@@ -98,9 +101,12 @@ class ArticleToPostService
             $post->content_id = $content->id;
         }
 
+        $keywords = $article->getKeywords();
+
         $post->title = $title;
         $post->lead = $lead;
         $post->main_image_url = $mainImageUrl;
+        $post->keywords = ! empty($keywords) ? implode(', ', $keywords) : null;
         $post->layout = $this->getLayout();
         $post->save();
 
