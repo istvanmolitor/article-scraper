@@ -8,6 +8,7 @@ use IstvanMolitor\ArticleScraper\Repositories\PostRepository;
 use IstvanMolitor\ArticleScraper\Repositories\PostRepositoryInterface;
 use IstvanMolitor\ArticleScraper\Services\ArticleToPostService;
 use Molitor\ArticleParser\Services\ArticleParserService;
+use Molitor\Cms\Repositories\PostTypeRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
 
 class ArticleScraperServiceProvider extends ServiceProvider
@@ -31,7 +32,10 @@ class ArticleScraperServiceProvider extends ServiceProvider
             return new ArticleParserService;
         });
         $this->app->singleton(ArticleToPostService::class, function ($app) {
-            return new ArticleToPostService($app->make(ContentHandler::class));
+            return new ArticleToPostService(
+                $app->make(ContentHandler::class),
+                $app->make(PostTypeRepositoryInterface::class),
+            );
         });
     }
 }

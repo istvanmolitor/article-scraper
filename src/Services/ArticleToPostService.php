@@ -12,6 +12,7 @@ use Molitor\Cms\Models\Post;
 use Molitor\Cms\Models\PostGroup;
 use Molitor\Cms\Models\PostMeta;
 use Molitor\Cms\Repositories\PostMetaRepositoryInterface;
+use Molitor\Cms\Repositories\PostTypeRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
 use Molitor\Language\Models\Language;
 use Molitor\Theme\Services\LayoutService;
@@ -19,7 +20,8 @@ use Molitor\Theme\Services\LayoutService;
 class ArticleToPostService
 {
     public function __construct(
-        private ContentHandler $contentHandler
+        private ContentHandler $contentHandler,
+        private PostTypeRepositoryInterface $postTypeRepository,
     ) {}
 
     /**
@@ -30,6 +32,10 @@ class ArticleToPostService
         if ($languageId === null) {
             $language = Language::where('code', 'hu')->first();
             $languageId = $language?->id ?? 1;
+        }
+
+        if ($postTypeId === null) {
+            $postTypeId = $this->postTypeRepository->getDefault()?->id;
         }
 
         $content = Content::create([]);
