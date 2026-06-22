@@ -21,6 +21,7 @@ class ScrapeAndSaveArticleRequest extends FormRequest
             'language_id' => ['nullable', 'integer', 'exists:languages,id'],
             'publish' => ['nullable', 'boolean'],
             'layout' => ['nullable', 'string', 'max:64'],
+            'post_type_id' => ['required', 'integer', 'exists:post_types,id'],
         ];
     }
 
@@ -37,6 +38,9 @@ class ScrapeAndSaveArticleRequest extends FormRequest
             'language_id.exists' => 'A megadott nyelv nem letezik.',
             'publish.boolean' => 'A publikalas mezo csak igaz vagy hamis ertek lehet.',
             'layout.string' => 'A layout mezo karakterlancnak kell lennie.',
+            'post_type_id.required' => 'A post tipusa kotelezo.',
+            'post_type_id.integer' => 'A post tipusanak azonositoja egesz szam kell legyen.',
+            'post_type_id.exists' => 'A megadott post tipus nem letezik.',
         ];
     }
 }

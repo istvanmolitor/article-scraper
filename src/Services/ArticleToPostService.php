@@ -25,7 +25,7 @@ class ArticleToPostService
     /**
      * Convert an Article object to a CMS Post
      */
-    public function convertArticleToPost(Article $article, string $sourceLink, ?int $languageId = null, bool $publish = false, ?string $layout = null): Post
+    public function convertArticleToPost(Article $article, string $sourceLink, ?int $languageId = null, bool $publish = false, ?string $layout = null, ?int $postTypeId = null): Post
     {
         if ($languageId === null) {
             $language = Language::where('code', 'hu')->first();
@@ -62,6 +62,7 @@ class ArticleToPostService
             'language_id' => $languageId,
             'is_published' => $publish,
             'layout' => $layout ?? $this->getLayout(),
+            'post_type_id' => $postTypeId,
         ]);
 
         $this->assignPostGroupFromDomain($post, $sourceLink);

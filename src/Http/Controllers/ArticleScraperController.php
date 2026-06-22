@@ -70,6 +70,7 @@ class ArticleScraperController extends Controller
             languageId: $this->languageRepository->getIdByCode($article->getLanguage() ?? 'hu'),
             publish: (bool) $request->boolean('publish', false),
             layout: $layout,
+            postTypeId: $request->integer('post_type_id'),
         );
 
         return response()->json([
