@@ -8,6 +8,7 @@ use IstvanMolitor\ArticleScraper\Repositories\PostRepository;
 use IstvanMolitor\ArticleScraper\Repositories\PostRepositoryInterface;
 use IstvanMolitor\ArticleScraper\Services\ArticleToPostService;
 use Molitor\ArticleParser\Services\ArticleParserService;
+use Molitor\Cms\Repositories\PostMetaRepositoryInterface;
 use Molitor\Cms\Repositories\PostTypeRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
 
@@ -35,6 +36,7 @@ class ArticleScraperServiceProvider extends ServiceProvider
             return new ArticleToPostService(
                 $app->make(ContentHandler::class),
                 $app->make(PostTypeRepositoryInterface::class),
+                $app->make(PostMetaRepositoryInterface::class),
             );
         });
     }

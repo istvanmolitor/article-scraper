@@ -22,6 +22,7 @@ class ArticleToPostService
     public function __construct(
         private ContentHandler $contentHandler,
         private PostTypeRepositoryInterface $postTypeRepository,
+        private PostMetaRepositoryInterface $postMetaRepository,
     ) {}
 
     /**
@@ -29,6 +30,11 @@ class ArticleToPostService
      */
     public function convertArticleToPost(Article $article, string $sourceLink, ?int $languageId = null, bool $publish = false, ?string $layout = null, ?int $postTypeId = null): Post
     {
+        $existingMeta = $this->postMetaRepository->getByValue($sourceLink, 'source_link');
+        if ($existingMeta && $existingMeta->post) {
+            return $this->updatePostFromArticle($existingMeta->post, $article, $sourceLink);
+        }
+
         if ($languageId === null) {
             $language = Language::where('code', 'hu')->first();
             $languageId = $language?->id ?? 1;
@@ -73,9 +79,8 @@ class ArticleToPostService
 
         $this->assignPostGroupFromDomain($post, $sourceLink);
 
-        $postMetaRepository = app(PostMetaRepositoryInterface::class);
-        $postMetaRepository->save($post, 'source_link', $sourceLink);
-        $postMetaRepository->save($post, 'scraped_at', now()->toIso8601String());
+        $this->postMetaRepository->save($post, 'source_link', $sourceLink);
+        $this->postMetaRepository->save($post, 'scraped_at', now()->toIso8601String());
 
         $this->attachAuthors($post, $article->getAuthors());
 
