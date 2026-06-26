@@ -5,6 +5,8 @@ namespace IstvanMolitor\ArticleScraper\Console\Commands;
 use Illuminate\Console\Command;
 use IstvanMolitor\ArticleScraper\Repositories\PostRepositoryInterface;
 use IstvanMolitor\ArticleScraper\Services\ArticleToPostService;
+use Molitor\ArticleParser\Exceptions\ArticleFetchException;
+use Molitor\ArticleParser\Exceptions\InvalidArticleException;
 use Molitor\ArticleParser\Services\ArticleParserService;
 
 class ScrapePostsCommand extends Command
@@ -61,10 +63,15 @@ class ScrapePostsCommand extends Command
                 continue;
             }
 
-            $article = $this->articleParserService->getByUrl($sourceLink);
+            try {
+                $article = $this->articleParserService->getByUrl($sourceLink);
+            } catch (ArticleFetchException $e) {
+                $this->warn("Post #{$post->id}: nem sikerult letolteni ({$e->getMessage()}).");
+                $failed++;
 
-            if ($article === null) {
-                $this->warn("Post #{$post->id}: nem sikerult a cikk tartalmat beolvasni.");
+                continue;
+            } catch (InvalidArticleException $e) {
+                $this->warn("Post #{$post->id}: ervenytelen cikk ({$e->getMessage()}).");
                 $failed++;
 
                 continue;
