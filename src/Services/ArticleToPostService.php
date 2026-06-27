@@ -263,7 +263,7 @@ class ArticleToPostService
                 'height' => null,
             ],
             'quote' => [
-                'text' => $elementData['content'] ?? '',
+                'quote' => $elementData['content'] ?? '',
                 'author' => null,
             ],
             'list' => [
