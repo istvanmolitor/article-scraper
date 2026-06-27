@@ -264,7 +264,7 @@ class ArticleToPostService
             ],
             'quote' => [
                 'quote' => $elementData['content'] ?? '',
-                'author' => null,
+                'author' => $elementData['author'] ?? null,
             ],
             'list' => [
                 'items' => $elementData['items'] ?? [],
