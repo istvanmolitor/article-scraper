@@ -233,7 +233,7 @@ class ArticleToPostService
     private function mapArticleTypeToCmsType(string $articleType): string
     {
         return match ($articleType) {
-            'paragraph' => 'text',
+            'paragraph' => 'paragraph',
             'heading' => 'heading',
             'image' => 'image',
             'quote' => 'quote',
@@ -261,8 +261,7 @@ class ArticleToPostService
     {
         return match ($type) {
             'paragraph' => [
-                'text' => $this->prepareHtml($elementData['content'] ?? ''),
-                'align' => 'left',
+                'content' => $this->prepareHtml($elementData['content'] ?? ''),
             ],
             'heading' => [
                 'text' => $this->prepareHtml($elementData['content'] ?? ''),
