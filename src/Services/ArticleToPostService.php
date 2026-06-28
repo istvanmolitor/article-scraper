@@ -16,6 +16,7 @@ use Molitor\Cms\Repositories\PostTypeRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
 use Molitor\Language\Models\Language;
 use Molitor\Theme\Services\LayoutService;
+use Molitor\Tinyurl\Services\HtmlService;
 
 class ArticleToPostService
 {
@@ -23,6 +24,7 @@ class ArticleToPostService
         private ContentHandler $contentHandler,
         private PostTypeRepositoryInterface $postTypeRepository,
         private PostMetaRepositoryInterface $postMetaRepository,
+        private HtmlService $htmlService,
     ) {}
 
     /**
@@ -46,8 +48,8 @@ class ArticleToPostService
 
         $content = Content::create([]);
 
-        $title = $article->getTitle();
-        $lead = $article->getLead();
+        $title = $this->sanitizeUtf8($article->getTitle());
+        $lead = $this->sanitizeUtf8($article->getLead());
         $mainImageUrl = $article->getMainImage()?->getSrc();
 
         if (strlen($title) > 255) {
@@ -62,7 +64,7 @@ class ArticleToPostService
             $mainImageUrl = null;
         }
 
-        $keywords = $article->getKeywords();
+        $keywords = array_map(fn (string $k) => $this->sanitizeUtf8($k), $article->getKeywords());
 
         $post = Post::create([
             'title' => $title,
@@ -91,8 +93,8 @@ class ArticleToPostService
 
     public function updatePostFromArticle(Post $post, Article $article, string $sourceLink): Post
     {
-        $title = $article->getTitle();
-        $lead = $article->getLead();
+        $title = $this->sanitizeUtf8($article->getTitle());
+        $lead = $this->sanitizeUtf8($article->getLead());
         $mainImageUrl = $article->getMainImage()?->getSrc();
 
         if (strlen($title) > 255) {
@@ -113,7 +115,7 @@ class ArticleToPostService
             $post->content_id = $content->id;
         }
 
-        $keywords = $article->getKeywords();
+        $keywords = array_map(fn (string $k) => $this->sanitizeUtf8($k), $article->getKeywords());
 
         $post->title = $title;
         $post->lead = $lead;
@@ -242,6 +244,16 @@ class ArticleToPostService
         };
     }
 
+    private function prepareHtml(string $html): string
+    {
+        return $this->htmlService->prepareHtml($this->sanitizeUtf8($html));
+    }
+
+    private function sanitizeUtf8(string $value): string
+    {
+        return mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+    }
+
     /**
      * Convert article element data to ContentHandler settings format
      */
@@ -249,11 +261,11 @@ class ArticleToPostService
     {
         return match ($type) {
             'paragraph' => [
-                'text' => $elementData['content'] ?? '',
+                'text' => $this->prepareHtml($elementData['content'] ?? ''),
                 'align' => 'left',
             ],
             'heading' => [
-                'text' => $elementData['content'] ?? '',
+                'text' => $this->prepareHtml($elementData['content'] ?? ''),
                 'level' => 2,
             ],
             'image' => [
@@ -263,7 +275,7 @@ class ArticleToPostService
                 'height' => null,
             ],
             'quote' => [
-                'quote' => $elementData['content'] ?? '',
+                'quote' => $this->prepareHtml($elementData['content'] ?? ''),
                 'author' => $elementData['author'] ?? null,
             ],
             'list' => [

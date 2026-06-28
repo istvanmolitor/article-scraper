@@ -11,6 +11,7 @@ use Molitor\ArticleParser\Services\ArticleParserService;
 use Molitor\Cms\Repositories\PostMetaRepositoryInterface;
 use Molitor\Cms\Repositories\PostTypeRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
+use Molitor\Tinyurl\Services\HtmlService;
 
 class ArticleScraperServiceProvider extends ServiceProvider
 {
@@ -37,6 +38,7 @@ class ArticleScraperServiceProvider extends ServiceProvider
                 $app->make(ContentHandler::class),
                 $app->make(PostTypeRepositoryInterface::class),
                 $app->make(PostMetaRepositoryInterface::class),
+                $app->make(HtmlService::class),
             );
         });
     }
