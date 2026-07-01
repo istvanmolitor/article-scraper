@@ -47,8 +47,8 @@ class ArticleToPostService
 
         $content = Content::create([]);
 
-        $title = $this->sanitizeUtf8($article->getTitle());
-        $lead = $this->sanitizeUtf8($article->getLead());
+        $title = $article->getTitle();
+        $lead = $article->getLead();
         $mainImageUrl = $article->getMainImage()?->getSrc();
 
         if (strlen($title) > 255) {
@@ -63,7 +63,7 @@ class ArticleToPostService
             $mainImageUrl = null;
         }
 
-        $keywords = array_map(fn (string $k) => $this->sanitizeUtf8($k), $article->getKeywords());
+        $keywords = $article->getKeywords();
 
         $post = Post::create([
             'title' => $title,
@@ -92,8 +92,8 @@ class ArticleToPostService
 
     public function updatePostFromArticle(Post $post, Article $article, string $sourceLink): Post
     {
-        $title = $this->sanitizeUtf8($article->getTitle());
-        $lead = $this->sanitizeUtf8($article->getLead());
+        $title = $article->getTitle();
+        $lead = $article->getLead();
         $mainImageUrl = $article->getMainImage()?->getSrc();
 
         if (strlen($title) > 255) {
@@ -114,7 +114,7 @@ class ArticleToPostService
             $post->content_id = $content->id;
         }
 
-        $keywords = array_map(fn (string $k) => $this->sanitizeUtf8($k), $article->getKeywords());
+        $keywords = $article->getKeywords();
 
         $post->title = $title;
         $post->lead = $lead;
