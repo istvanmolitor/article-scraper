@@ -11,7 +11,6 @@ use Molitor\ArticleParser\Services\ArticleParserService;
 use Molitor\Cms\Repositories\PostMetaRepositoryInterface;
 use Molitor\Cms\Repositories\PostTypeRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
-use Molitor\Tinyurl\Services\HtmlService;
 
 class ArticleScraperServiceProvider extends ServiceProvider
 {
@@ -19,7 +18,13 @@ class ArticleScraperServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__.'/routes/api.php');
 
+        $this->mergeConfigFrom(__DIR__.'/../config/article-scraper.php', 'article-scraper');
+
         if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../config/article-scraper.php' => config_path('article-scraper.php'),
+            ], 'article-scraper-config');
+
             $this->commands([
                 ScrapePostsCommand::class,
             ]);
@@ -38,7 +43,6 @@ class ArticleScraperServiceProvider extends ServiceProvider
                 $app->make(ContentHandler::class),
                 $app->make(PostTypeRepositoryInterface::class),
                 $app->make(PostMetaRepositoryInterface::class),
-                $app->make(HtmlService::class),
             );
         });
     }

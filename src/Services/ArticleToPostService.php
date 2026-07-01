@@ -3,6 +3,7 @@
 namespace IstvanMolitor\ArticleScraper\Services;
 
 use Illuminate\Support\Str;
+use IstvanMolitor\ArticleScraper\Contracts\HtmlPreparerInterface;
 use Molitor\ArticleParser\Article\Article;
 use Molitor\ArticleParser\Article\ArticleContent;
 use Molitor\ArticleParser\Article\ArticleContentElement;
@@ -16,7 +17,6 @@ use Molitor\Cms\Repositories\PostTypeRepositoryInterface;
 use Molitor\Cms\Services\ContentHandler;
 use Molitor\Language\Models\Language;
 use Molitor\Theme\Services\LayoutService;
-use Molitor\Tinyurl\Services\HtmlService;
 
 class ArticleToPostService
 {
@@ -24,7 +24,6 @@ class ArticleToPostService
         private ContentHandler $contentHandler,
         private PostTypeRepositoryInterface $postTypeRepository,
         private PostMetaRepositoryInterface $postMetaRepository,
-        private HtmlService $htmlService,
     ) {}
 
     /**
@@ -246,12 +245,13 @@ class ArticleToPostService
 
     private function prepareHtml(string $html): string
     {
-        return $this->htmlService->prepareHtml($this->sanitizeUtf8($html));
-    }
+        $preparerClass = config('article-scraper.html_preparer');
 
-    private function sanitizeUtf8(string $value): string
-    {
-        return mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+        if (! $preparerClass || ! is_a($preparerClass, HtmlPreparerInterface::class, true)) {
+            throw new \RuntimeException("The configured 'article-scraper.html_preparer' must implement HtmlPreparerInterface. Got: ".($preparerClass ?? 'null'));
+        }
+
+        return app($preparerClass)->prepare($html);
     }
 
     /**
